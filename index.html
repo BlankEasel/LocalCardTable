@@ -164,7 +164,6 @@
 
     .hand-zone { display: flex; gap: 16px; overflow-x: auto; padding: 12px 6px; min-height: 120px; align-items: center; }
 
-    /* 無制限の親子関係：50%重なるオーバーラップスタイル */
     .card-tree-node {
       display: flex;
       flex-direction: column;
@@ -175,7 +174,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      margin-top: -30px; /* 回転時の高さ変化に追従しつつ重なりを維持 */
+      margin-top: -30px;
       padding-left: 16px;
       border-left: 2px dashed rgba(167, 139, 250, 0.4);
       z-index: 2;
@@ -202,7 +201,9 @@
       padding: 0;
       margin: 0;
     }
+    .game-card.disabled-click { cursor: default !important; }
     .game-card:active { cursor: grabbing; }
+    .game-card.disabled-click:active { cursor: default !important; }
     .game-card:hover { box-shadow: 0 8px 12px rgba(0, 0, 0, 0.4); z-index: 10; }
     .game-card.normal { width: 70px; height: 98px; }
     .game-card.compact { width: 56px; height: 80px; }
@@ -421,7 +422,9 @@
           <h2>手札 <span style="font-size: 13px; font-weight: normal; color: #94a3b8; margin-left: 6px;" id="handCount">0枚</span></h2>
           
           <div class="controls-bar" id="handControlsBar" onclick="event.stopPropagation()">
-            <span>クリック時:</span>
+            <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer; margin-right: 4px;">
+              <input type="checkbox" id="handEnableClick" style="width: auto;" checked> クリック時:
+            </label>
             <select id="handActionSelect" style="width: auto;"></select>
             <button type="button" class="btn secondary" id="handFacingToggleBtn" style="width: 45px; height: 30px; padding: 0; justify-content: center; font-size: 12px;">表</button>
             <div id="handDeckOptions" style="display: none; align-items: center; gap: 4px;">
@@ -454,8 +457,8 @@
       <div style="font-size: 13px; color: #cbd5e1; display: flex; flex-direction: column; gap: 8px; line-height: 1.5;">
         <p><strong>【概要】</strong><br>ブラウザ上で動作するフリープレイ用のカードテーブルです。</p>
         <p><strong>【主な機能】</strong><br>
-        ・<strong>回転時のレイアウト修正</strong>: 90°・270°回転時における場の下部空間の余分な伸びを修正しました。<br>
-        ・<strong>画像ドラッグ＆ドロップ追加</strong>: デッキ編集の表面・裏面画像エリアに直接画像をドラッグ＆ドロップして設定できます。</p>
+        ・<strong>クリック有効/無効の切り替え</strong>: 各エリアの「クリック時:」の左側にあるチェックボックスがON（デフォルト）のときはクリック有効、OFFにするとクリック操作が無効になります。<br>
+        ・<strong>画像ドラッグ＆ドロップ追加</strong>: デッキ編集の表面・裏面画像エリアに直接画像をドラッグ＆ドロップして設定可能です。</p>
       </div>
       <button class="btn secondary" id="helpModalCloseBtn" style="width: 100%; justify-content: center;">閉じる</button>
     </div>
@@ -554,7 +557,6 @@
         </div>
       </div>
       
-      <!-- 親子関係のチェーン表示エリア（クリックでカード詳細切替可能） -->
       <div id="zoomChainContainer" style="width: 100%; display: flex; flex-direction: column; gap: 4px; padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); font-size: 12px;">
         <div style="color: #94a3b8; font-weight: bold; margin-bottom: 2px;">親子系譜 (クリックで詳細切替):</div>
         <div id="zoomChainList" style="display: flex; flex-direction: column; gap: 3px;"></div>
@@ -565,7 +567,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "local-card-freeplay-v27";
+    const STORAGE_KEY = "local-card-freeplay-v31";
     const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
 
     const defaultCards = [
@@ -611,7 +613,8 @@
         clickAction: "hand",
         clickFacing: "up",
         clickDeckPos: "top",
-        clickDeckNum: 1
+        clickDeckNum: 1,
+        enableClick: true
       }
     ];
 
@@ -624,6 +627,7 @@
     }
 
     let handFacing = "up";
+    let handEnableClick = true;
 
     const $ = (id) => document.getElementById(id);
 
@@ -701,6 +705,12 @@
       handFacing = handFacing === "up" ? "down" : "up";
       handFacingToggleBtn.textContent = handFacing === "up" ? "表" : "裏";
       handFacingToggleBtn.style.background = handFacing === "up" ? "rgba(255,255,255,0.1)" : "#7c3aed";
+    };
+
+    const handEnableClickCheckbox = $("handEnableClick");
+    handEnableClickCheckbox.onchange = (e) => {
+      handEnableClick = e.target.checked;
+      renderZones();
     };
 
     const deckVisibilityToggleBtn = $("deckVisibilityToggleBtn");
@@ -1115,7 +1125,7 @@
       editorList.scrollTop = editorList.scrollHeight;
     };
 
-    function createCardElement(card, compact = false, onClick, sourceInfo) {
+    function createCardElement(card, compact = false, onClick, sourceInfo, enableClick = true) {
       const wrapper = document.createElement("div");
       wrapper.className = "card-wrapper";
 
@@ -1123,7 +1133,11 @@
       btn.type = "button";
       
       const isFacedUp = card.isFacedUp !== false;
-      btn.className = `game-card ${compact ? "compact" : "normal"}${!isFacedUp && !compact ? " faced-down" : ""}`;
+      let baseClass = `game-card ${compact ? "compact" : "normal"}${!isFacedUp && !compact ? " faced-down" : ""}`;
+      if (!enableClick) {
+        baseClass += " disabled-click";
+      }
+      btn.className = baseClass;
       
       const rot = card.rotation || 0;
       const w = compact ? 56 : 70;
@@ -1199,7 +1213,9 @@
         }
       }
 
-      btn.onclick = onClick;
+      if (enableClick) {
+        btn.onclick = onClick;
+      }
       btn.oncontextmenu = (e) => {
         e.preventDefault();
         openZoomModal(card);
@@ -1403,6 +1419,7 @@
         handSelect.value = currentHandVal;
       }
       $("handDeckOptions").style.display = handSelect.value === "deck" ? "flex" : "none";
+      $("handEnableClick").checked = handEnableClick;
 
       fields.forEach(f => {
         const fieldSelect = $(`fieldActionSelect_${f.id}`);
@@ -1416,12 +1433,21 @@
           if (deckOpts) {
             deckOpts.style.display = fieldSelect.value === "deck" ? "flex" : "none";
           }
+          const enableCheckbox = $(`fieldEnableClick_${f.id}`);
+          if (enableCheckbox) {
+            enableCheckbox.checked = f.enableClick !== false;
+          }
         }
       });
     }
 
     $("handActionSelect").onchange = (e) => {
       $("handDeckOptions").style.display = e.target.value === "deck" ? "flex" : "none";
+    };
+
+    $("handEnableClick").onchange = (e) => {
+      handEnableClick = e.target.checked;
+      renderZones();
     };
 
     function executeCardAction(card, sourceArray, sourceIndex, actionVal, facingVal, extraParams = {}) {
@@ -1607,7 +1633,7 @@
 
       const cardEl = createCardElement(card, false, () => {
         executeCardAction(card, f.cards, f.cards.findIndex(c => c.instanceId === card.instanceId), f.clickAction || "hand", f.clickFacing || "up", { pos: f.clickDeckPos, num: f.clickDeckNum });
-      }, { type: 'field', fieldId: f.id, index: f.cards.findIndex(c => c.instanceId === card.instanceId) });
+      }, { type: 'field', fieldId: f.id, index: f.cards.findIndex(c => c.instanceId === card.instanceId) }, f.enableClick !== false);
 
       cardEl.ondragover = (e) => {
         e.preventDefault();
@@ -1664,8 +1690,18 @@
         const fieldControls = document.createElement("div");
         fieldControls.className = "controls-bar";
 
-        const clickLabel = document.createElement("span");
-        clickLabel.textContent = "クリック時:";
+        const enableClickLabel = document.createElement("label");
+        enableClickLabel.style.cssText = "display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer; margin-right: 4px;";
+        const enableClickInput = document.createElement("input");
+        enableClickInput.type = "checkbox";
+        enableClickInput.id = `fieldEnableClick_${f.id}`;
+        enableClickInput.style.width = "auto";
+        enableClickInput.checked = f.enableClick !== false;
+        enableClickInput.onchange = (e) => {
+          f.enableClick = e.target.checked;
+          renderZones();
+        };
+        enableClickLabel.append(enableClickInput, document.createTextNode(" クリック時:"));
 
         const actionSelect = document.createElement("select");
         actionSelect.id = `fieldActionSelect_${f.id}`;
@@ -1716,7 +1752,8 @@
         deckNumLabel.textContent = "番目";
 
         deckOptions.append(deckPos, deckNum, deckNumLabel);
-        fieldControls.append(clickLabel, actionSelect, facingToggle, deckOptions);
+
+        fieldControls.append(enableClickLabel, actionSelect, facingToggle, deckOptions);
         headActions.appendChild(fieldControls);
 
         const deckPullGroup = document.createElement("div");
@@ -1836,7 +1873,7 @@
             const deckNum = $("handDeckNum").value;
 
             executeCardAction(card, hand, cardIdx, actionVal, facingVal, { pos: deckPos, num: deckNum });
-          }, { type: 'hand', index: cardIdx });
+          }, { type: 'hand', index: cardIdx }, handEnableClick);
 
           cardEl.ondragover = (e) => {
             e.preventDefault();
@@ -1873,7 +1910,8 @@
         clickAction: "hand",
         clickFacing: "up",
         clickDeckPos: "top",
-        clickDeckNum: 1
+        clickDeckNum: 1,
+        enableClick: true
       });
       addLog(`新しい場（場 ${newFieldNum}）を追加しました`);
       render();
@@ -1933,8 +1971,9 @@
     $("exportButton").onclick = () => {
       const filename = $("exportFileName").value.trim() || "card-deck.json";
       const exportData = {
-        version: 4,
+        version: 8,
         cards,
+        handEnableClick,
         counters: counters.map(c => ({ id: c.id, name: c.name, value: c.value })),
         fields: fields.map(f => ({
           name: f.name,
@@ -1942,7 +1981,8 @@
           clickAction: f.clickAction,
           clickFacing: f.clickFacing,
           clickDeckPos: f.clickDeckPos,
-          clickDeckNum: f.clickDeckNum
+          clickDeckNum: f.clickDeckNum,
+          enableClick: f.enableClick
         }))
       };
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
@@ -1977,6 +2017,8 @@
             color: c.color || colorPresets[i % colorPresets.length]
           }));
 
+          handEnableClick = data.handEnableClick !== false;
+
           if (Array.isArray(data.counters)) {
             counters = data.counters.map(c => ({
               id: c.id || uid(),
@@ -1997,7 +2039,8 @@
               clickAction: f.clickAction || "hand",
               clickFacing: f.clickFacing || "up",
               clickDeckPos: f.clickDeckPos || "top",
-              clickDeckNum: f.clickDeckNum || 1
+              clickDeckNum: f.clickDeckNum || 1,
+              enableClick: f.enableClick !== false
             }));
           } else {
             fields = [
@@ -2010,7 +2053,8 @@
                 clickAction: "hand",
                 clickFacing: "up",
                 clickDeckPos: "top",
-                clickDeckNum: 1
+                clickDeckNum: 1,
+                enableClick: true
               }
             ];
           }
