@@ -1457,6 +1457,16 @@
           }
         };
 
+        // 表画像の右クリックでPREVIEWに表示
+        wrapFront.oncontextmenu = (e) => {
+          e.preventDefault();
+          if (card.image) {
+            previewCard = { name: `${card.name} (表)`, image: card.image, isFacedUp: true };
+            renderPreviewPanel();
+            addLog(`${card.name}の表画像をPREVIEWに表示しました`);
+          }
+        };
+
         if (card.image) {
           labelFront.innerHTML = `<img src="${card.image}" alt="表">`;
           const clearFront = document.createElement("button");
@@ -1493,6 +1503,16 @@
             const reader = new FileReader();
             reader.onload = () => { card.backImage = String(reader.result); saveCards(); render(); };
             reader.readAsDataURL(file);
+          }
+        };
+
+        // 裏画像の右クリックでPREVIEWに表示
+        wrapBack.oncontextmenu = (e) => {
+          e.preventDefault();
+          if (card.backImage) {
+            previewCard = { name: `${card.name} (裏)`, backImage: card.backImage, isFacedUp: false };
+            renderPreviewPanel();
+            addLog(`${card.name}の裏画像をPREVIEWに表示しました`);
           }
         };
 
@@ -2155,7 +2175,7 @@
           }));
           handEnableClick = data.handEnableClick !== false;
           handIsPrivate = data.handIsPrivate !== false;
-          counters = Array.isArray(data.counters) ? data.counters.map(c => ({ id: c.id || uid(), name: String(c.name || "カウンタ"), value: Math.max(0, Number(c.value) || 0) })) : [];
+          counters = Array.isArray(data.counters) ? data.counters.map(c => ({ id: c.id || uid(), name: String(c.name || "カウンタ"), value: Math.max(0, Number(c.value) || 0, 0) })) : [];
           fields = Array.isArray(data.fields) && data.fields.length > 0 ? data.fields.map((f, i) => ({
             id: uid(), name: String(f.name || `場 ${i + 1}`), cards: [], facing: f.facing || "up", isOpen: true,
             isPrivate: f.isPrivate !== false, clickAction: f.clickAction || "hand", clickFacing: f.clickFacing || "up",
