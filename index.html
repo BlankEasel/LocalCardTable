@@ -413,7 +413,7 @@
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
     .modal-content {
       background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 12px;
-      width: min(520px, 90vw); max-height: 85vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      width: min(600px, 92vw); max-height: 85vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
       display: flex; flex-direction: column; gap: 12px; position: relative;
     }
     .modal-content h3 { margin: 0; font-size: 15px; font-weight: 700; color: #f8fafc; }
@@ -437,7 +437,7 @@
     .deck-list-modal { display: flex; flex-direction: column; gap: 8px; overflow-y: visible; }
     .deck-list-item {
       display: flex; align-items: center; justify-content: space-between; padding: 8px 12px;
-      background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; gap: 10px;
+      background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; gap: 8px; flex-wrap: wrap;
     }
 
     .controls-bar {
@@ -519,7 +519,7 @@
             </div>
             <div class="actions">
               <button class="btn secondary" id="inspectDiscardBtn" disabled style="padding: 4px 8px; font-size: 11px;">
-                確認・移動
+                確認
               </button>
             </div>
           </section>
@@ -596,7 +596,7 @@
 
     <!-- デッキ編集モーダル -->
     <div class="modal-overlay" id="editorModal">
-      <div class="modal-content" style="width: min(680px, 95vw);">
+      <div class="modal-content" style="width: min(680px, 95vw); max-height: 85vh;">
         <button type="button" class="btn secondary" id="closeEditorModalBtn" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; padding: 0; justify-content: center; font-weight: bold; font-size: 16px; z-index: 10;" title="閉じる">×</button>
 
         <div style="display: flex; justify-content: space-between; align-items: center; padding-right: 36px;">
@@ -633,10 +633,10 @@
 
     <!-- DECK確認・移動モーダル -->
     <div class="modal-overlay" id="deckInspectModal">
-      <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+      <div class="modal-content" style="max-height: 460px; overflow-y: auto;">
         <button type="button" class="btn secondary" id="deckInspectClose" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; padding: 0; justify-content: center; font-weight: bold; font-size: 16px; z-index: 10;" title="閉じる">×</button>
         <div style="display: flex; justify-content: space-between; align-items: center; padding-right: 36px;">
-          <h3 id="deckInspectTitle">デッキ確認・移動 (上から順)</h3>
+          <h3 id="deckInspectTitle">デッキ確認 (上から順)</h3>
           <span class="badge" id="deckInspectCount">0枚</span>
         </div>
         <div class="deck-list-modal" id="deckInspectList"></div>
@@ -645,10 +645,10 @@
 
     <!-- DISCARD確認・移動モーダル -->
     <div class="modal-overlay" id="discardInspectModal">
-      <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+      <div class="modal-content" style="max-height: 460px; overflow-y: auto;">
         <button type="button" class="btn secondary" id="discardInspectClose" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; padding: 0; justify-content: center; font-weight: bold; font-size: 16px; z-index: 10;" title="閉じる">×</button>
         <div style="display: flex; justify-content: space-between; align-items: center; padding-right: 36px;">
-          <h3>DISCARD確認・移動</h3>
+          <h3>DISCARD確認</h3>
           <span class="badge" id="discardInspectCount">0枚</span>
         </div>
         <div class="deck-list-modal" id="discardInspectList"></div>
@@ -756,6 +756,21 @@
     let handEnableClick = true;
 
     const $ = (id) => document.getElementById(id);
+
+    /* ==========================================
+       モーダル統括管理（排他制御）
+       ========================================== */
+    function closeAllModals() {
+      document.querySelectorAll('.modal-overlay').forEach(modal => {
+        modal.classList.remove('active');
+      });
+    }
+
+    function openModal(modalId) {
+      closeAllModals();
+      const target = $(modalId);
+      if (target) target.classList.add("active");
+    }
 
     /* ==========================================
        2. ユーティリティ・ヘルパー
@@ -1158,7 +1173,7 @@
       if (excludeType !== "hand") {
         const optHand = document.createElement("option");
         optHand.value = "hand";
-        optHand.textContent = "手札へ戻す";
+        optHand.textContent = "手札";
         selectElem.appendChild(optHand);
       }
 
@@ -1166,7 +1181,7 @@
         if (excludeType !== "field" || excludeId !== f.id) {
           const opt = document.createElement("option");
           opt.value = `field_${f.id}`;
-          opt.textContent = `${f.name}へ出す`;
+          opt.textContent = `${f.name}`;
           selectElem.appendChild(opt);
         }
       });
@@ -1174,14 +1189,14 @@
       if (excludeType !== "discard") {
         const optDisc = document.createElement("option");
         optDisc.value = "discard";
-        optDisc.textContent = "DISCARDへ送る";
+        optDisc.textContent = "DISCARD";
         selectElem.appendChild(optDisc);
       }
 
       if (excludeType !== "deck") {
         const optDeck = document.createElement("option");
         optDeck.value = "deck";
-        optDeck.textContent = "デッキに戻す";
+        optDeck.textContent = "デッキ";
         selectElem.appendChild(optDeck);
       }
 
@@ -1791,82 +1806,162 @@
       updateAllActionSelects();
     }
 
+    function renderInspectList(container, cardList, srcType) {
+      container.innerHTML = "";
+      if (cardList.length === 0) {
+        container.innerHTML = `<div style="text-align: center; color: #64748b; padding: 20px;">カードはありません</div>`;
+        return;
+      }
+
+      cardList.forEach((card, idx) => {
+        const item = document.createElement("div");
+        item.className = "deck-list-item";
+
+        // 右クリックでPREVIEW表示する処理を追加
+        item.oncontextmenu = (e) => {
+          e.preventDefault();
+          previewCard = card;
+          renderPreviewPanel();
+          addLog(`${card.name}をPREVIEW領域に表示しました`);
+        };
+
+        // ドラッグハンドル（並び替え）の追加
+        const handle = document.createElement("div");
+        handle.className = "drag-handle";
+        handle.textContent = "⠿";
+        handle.draggable = true;
+        handle.ondragstart = (e) => e.dataTransfer.setData("text/plain", JSON.stringify({ inspectIndex: idx, inspectType: srcType }));
+
+        item.ondragover = (e) => e.preventDefault();
+        item.ondrop = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          try {
+            const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+            if (data.inspectIndex !== undefined && data.inspectType === srcType && data.inspectIndex !== idx) {
+              const [moved] = cardList.splice(data.inspectIndex, 1);
+              cardList.splice(idx, 0, moved);
+              if (srcType === "deck") renderDeckInspect();
+              else renderDiscardInspect();
+              render();
+            }
+          } catch (err) {}
+        };
+
+        item.appendChild(handle);
+
+        // カード情報（インデックス & 名前表示・左揃え）
+        const info = document.createElement("div");
+        info.style.cssText = "display: flex; align-items: center; gap: 8px; margin-right: auto; text-align: left;";
+        
+        const isFacedUp = card.isFacedUp !== false;
+        
+        // 公開判定：全体系公開 OR 個別が特例で公開に設定されている場合
+        const isCardPublicInDeck = (srcType === "deck") 
+          ? (isDeckPublic || card.isIndividuallyPublic === true)
+          : true;
+
+        const displayName = isCardPublicInDeck ? card.name : "非公開カード";
+
+        info.textContent = `${idx + 1}: ${displayName}`;
+
+        // アクション群
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        actions.style.cssText = "display: flex; gap: 6px; align-items: center;";
+
+        // デッキ確認モーダルの場合、個別の「公開・非公開」トグルボタンを追加
+        if (srcType === "deck") {
+          const publicToggleBtn = document.createElement("button");
+          publicToggleBtn.type = "button";
+          publicToggleBtn.className = "btn secondary";
+          publicToggleBtn.style.cssText = "padding: 2px 8px; font-size: 11px;";
+          
+          const isIndPublic = card.isIndividuallyPublic === true;
+          publicToggleBtn.textContent = isIndPublic ? "公開" : "非公開";
+          publicToggleBtn.style.background = isIndPublic ? "rgba(255,255,255,0.1)" : "#7c3aed";
+
+          publicToggleBtn.onclick = () => {
+            card.isIndividuallyPublic = !isIndPublic;
+            renderDeckInspect();
+            renderZones();
+          };
+          actions.appendChild(publicToggleBtn);
+        }
+
+        // 1. 表/裏トグルボタン
+        const facingToggleBtn = document.createElement("button");
+        facingToggleBtn.type = "button";
+        facingToggleBtn.className = "btn secondary";
+        facingToggleBtn.style.cssText = "padding: 2px 8px; font-size: 11px;";
+        facingToggleBtn.textContent = isFacedUp ? "表" : "裏";
+        facingToggleBtn.style.background = isFacedUp ? "rgba(255,255,255,0.1)" : "#7c3aed";
+        facingToggleBtn.onclick = () => {
+          card.isFacedUp = !isFacedUp;
+          if (srcType === "deck") renderDeckInspect();
+          else renderDiscardInspect();
+          renderZones();
+        };
+
+        // 2. 移動先選択プルダウン
+        const targetSelect = document.createElement("select");
+        targetSelect.style.cssText = "width: auto; height: 28px; font-size: 11px; padding: 2px 4px;";
+        buildDestinationOptions(targetSelect, srcType);
+
+        // デッキ位置指定オプション用（移動先がデッキの場合）
+        const deckOptWrap = document.createElement("div");
+        deckOptWrap.style.cssText = "display: none; align-items: center; gap: 4px; font-size: 11px;";
+
+        const deckPos = document.createElement("select");
+        deckPos.style.cssText = "width: 50px; height: 28px; font-size: 11px; padding: 2px;";
+        deckPos.innerHTML = `<option value="top">上</option><option value="bottom">下</option>`;
+
+        const deckNum = document.createElement("input");
+        deckNum.type = "number";
+        deckNum.min = "1";
+        deckNum.value = "1";
+        deckNum.style.cssText = "width: 40px; height: 28px; font-size: 11px; padding: 2px; text-align: center;";
+
+        deckOptWrap.append(deckPos, deckNum, document.createTextNode("番目"));
+
+        targetSelect.onchange = () => {
+          deckOptWrap.style.display = targetSelect.value === "deck" ? "flex" : "none";
+        };
+
+        // 3. 移動実行ボタン
+        const moveBtn = document.createElement("button");
+        moveBtn.type = "button";
+        moveBtn.className = "btn primary";
+        moveBtn.style.cssText = "padding: 2px 10px; font-size: 11px;";
+        moveBtn.textContent = "移動";
+        moveBtn.onclick = () => {
+          const action = targetSelect.value;
+          executeCardAction(card, cardList, idx, action, card.isFacedUp ? "up" : "down", {
+            pos: deckPos.value,
+            num: Number(deckNum.value) || 1
+          });
+          if (srcType === "deck") renderDeckInspect();
+          else renderDiscardInspect();
+        };
+
+        actions.append(facingToggleBtn, targetSelect, deckOptWrap, moveBtn);
+        item.append(info, actions);
+        container.appendChild(item);
+      });
+    }
+
     function renderDeckInspect() {
       const list = $("deckInspectList");
       const countBadge = $("deckInspectCount");
-      list.innerHTML = "";
       countBadge.textContent = `${deck.length}枚`;
-      if (deck.length === 0) {
-        list.innerHTML = `<div style="text-align: center; color: #64748b; padding: 20px;">デッキは空です</div>`;
-        return;
-      }
-      deck.forEach((card, idx) => {
-        const item = document.createElement("div");
-        item.className = "deck-list-item";
-        
-        const info = document.createElement("div");
-        info.style.cssText = "display: flex; align-items: center; gap: 8px;";
-        info.textContent = `${idx + 1}: ${card.isFacedUp !== false ? card.name : '非公開カード'}`;
-        
-        const actions = document.createElement("div");
-        actions.className = "actions";
-        
-        const drawBtn = document.createElement("button");
-        drawBtn.className = "btn secondary";
-        drawBtn.style.cssText = "padding: 2px 6px; font-size: 11px;";
-        drawBtn.textContent = "手札へ";
-        drawBtn.onclick = () => {
-          deck.splice(idx, 1);
-          card.isFacedUp = true;
-          hand.push(card);
-          addLog(`デッキの ${card.name} を手札に加えました`);
-          render();
-          renderDeckInspect();
-        };
-        
-        actions.appendChild(drawBtn);
-        item.append(info, actions);
-        list.appendChild(item);
-      });
+      renderInspectList(list, deck, "deck");
     }
 
     function renderDiscardInspect() {
       const list = $("discardInspectList");
       const countBadge = $("discardInspectCount");
-      list.innerHTML = "";
       countBadge.textContent = `${discard.length}枚`;
-      if (discard.length === 0) {
-        list.innerHTML = `<div style="text-align: center; color: #64748b; padding: 20px;">DISCARDは空です</div>`;
-        return;
-      }
-      discard.forEach((card, idx) => {
-        const item = document.createElement("div");
-        item.className = "deck-list-item";
-        
-        const info = document.createElement("div");
-        info.style.cssText = "display: flex; align-items: center; gap: 8px;";
-        info.textContent = `${idx + 1}: ${card.name}`;
-        
-        const actions = document.createElement("div");
-        actions.className = "actions";
-        
-        const toHandBtn = document.createElement("button");
-        toHandBtn.className = "btn secondary";
-        toHandBtn.style.cssText = "padding: 2px 6px; font-size: 11px;";
-        toHandBtn.textContent = "手札へ";
-        toHandBtn.onclick = () => {
-          discard.splice(idx, 1);
-          card.isFacedUp = true;
-          hand.push(card);
-          addLog(`DISCARDの ${card.name} を手札に加えました`);
-          render();
-          renderDiscardInspect();
-        };
-        
-        actions.appendChild(toHandBtn);
-        item.append(info, actions);
-        list.appendChild(item);
-      });
+      renderInspectList(list, discard, "discard");
     }
 
     function render() {
@@ -1881,7 +1976,6 @@
        6. モーダル操作・詳細画面
        ========================================== */
     function openZoomModal(card) {
-      const modal = $("zoomModal");
       const container = $("zoomCardContainer");
       const chainListEl = $("zoomChainList");
       const toggleBtn = $("zoomFacingToggleBtn");
@@ -2025,7 +2119,7 @@
 
       renderZoomChain();
       updateZoomCardView();
-      modal.classList.add("active");
+      openModal("zoomModal");
     }
 
     /* ==========================================
@@ -2051,12 +2145,16 @@
 
     $("deckVisibilityToggleBtn").onclick = () => {
       isDeckPublic = !isDeckPublic;
-      $("deckVisibilityToggleBtn").textContent = isDeckPublic ? "デッキ公開" : "デッキ非公開";
+      $("deckVisibilityToggleBtn").textContent = isDeckPublic ? "公開" : "非公開";
       $("deckVisibilityToggleBtn").style.background = isDeckPublic ? "rgba(255,255,255,0.1)" : "#7c3aed";
+      addLog(`デッキの公開状態を「${isDeckPublic ? "公開" : "非公開"}」に変更しました`);
+      if ($("deckInspectModal").classList.contains("active")) {
+        renderDeckInspect();
+      }
     };
 
     const setupModal = (openBtnId, closeBtnId, modalId) => {
-      $(openBtnId).onclick = () =>$(modalId).classList.add("active");
+      $(openBtnId).onclick = () => openModal(modalId);
       $(closeBtnId).onclick = () =>$(modalId).classList.remove("active");
       $(modalId).onclick = (e) => { if (e.target === $(modalId))$(modalId).classList.remove("active"); };
     };
@@ -2064,10 +2162,24 @@
     setupModal("openHelpModalBtn", "helpModalClose", "helpModal");
     $("helpModalCloseBtn").onclick = () => $("helpModal").classList.remove("active");
 
+    // カード追加ボタンのイベント登録
+    $("addButton").onclick = () => {
+      cards.push({
+        id: uid(),
+        name: `新カード ${cards.length + 1}`,
+        count: 1,
+        image: "",
+        backImage: "",
+        color: colorPresets[cards.length % colorPresets.length]
+      });
+      saveCards();
+      render();
+    };
+
     // デッキ編集モーダルの開閉と手札の details 折り畳み・展開連動
     $("openEditorModalBtn").onclick = () => {
       $("handDetails").open = false;
-      $("editorModal").classList.add("active");
+      openModal("editorModal");
     };
     const closeEditorModal = () => {
       $("handDetails").open = true;
@@ -2082,7 +2194,7 @@
 
     $("openLogModalBtn").onclick = () => {
       renderLogs();
-      $("logModal").classList.add("active");
+      openModal("logModal");
     };
     $("logModalClose").onclick = () => $("logModal").classList.remove("active");
     $("logModal").onclick = (e) => { if (e.target === $("logModal")) $("logModal").classList.remove("active"); };
@@ -2090,14 +2202,14 @@
     // デッキ・DISCARD確認モーダル
     $("inspectDeckBtn").onclick = () => {
       renderDeckInspect();
-      $("deckInspectModal").classList.add("active");
+      openModal("deckInspectModal");
     };
     $("deckInspectClose").onclick = () => $("deckInspectModal").classList.remove("active");
     $("deckInspectModal").onclick = (e) => { if (e.target === $("deckInspectModal")) $("deckInspectModal").classList.remove("active"); };
 
     $("inspectDiscardBtn").onclick = () => {
       renderDiscardInspect();
-      $("discardInspectModal").classList.add("active");
+      openModal("discardInspectModal");
     };
     $("discardInspectClose").onclick = () => $("discardInspectModal").classList.remove("active");
     $("discardInspectModal").onclick = (e) => { if (e.target === $("discardInspectModal")) $("discardInspectModal").classList.remove("active"); };
@@ -2125,7 +2237,7 @@
 
     $("startButton").onclick = () => {
       deck = shuffle(cards.flatMap(card => Array.from({ length: Math.max(0, Number(card.count) || 0) }, (_, i) => ({
-        ...card, isFacedUp: true, rotation: 0, parentId: null, inspectFacing: undefined, instanceId: `${card.id}-${i}-${uid()}`
+        ...card, isFacedUp: true, rotation: 0, parentId: null, inspectFacing: undefined, isIndividuallyPublic: false, instanceId: `${card.id}-${i}-${uid()}`
       }))));
       hand = []; discard = []; previewCard = null;
       fields.forEach(f => f.cards = []);
@@ -2175,7 +2287,7 @@
           }));
           handEnableClick = data.handEnableClick !== false;
           handIsPrivate = data.handIsPrivate !== false;
-          counters = Array.isArray(data.counters) ? data.counters.map(c => ({ id: c.id || uid(), name: String(c.name || "カウンタ"), value: Math.max(0, Number(c.value) || 0, 0) })) : [];
+          counters = Array.isArray(data.counters) ? data.counters.map(c => ({ id: c.id || uid(), name: String(c.name || "カウンタ"), value: Math.max(0, Number(c.value) || 0) })) : [];
           fields = Array.isArray(data.fields) && data.fields.length > 0 ? data.fields.map((f, i) => ({
             id: uid(), name: String(f.name || `場 ${i + 1}`), cards: [], facing: f.facing || "up", isOpen: true,
             isPrivate: f.isPrivate !== false, clickAction: f.clickAction || "hand", clickFacing: f.clickFacing || "up",
