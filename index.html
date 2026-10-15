@@ -1103,6 +1103,9 @@
             renderPreviewPanel();
             addLog(`${card.name}をPREVIEW領域に表示しました`);
           } else {
+            // 公開状態のときは、PREVIEWに表示すると同時に詳細ポップアップ（zoomModal）を開く
+            previewCard = card;
+            renderPreviewPanel();
             openZoomModal(card);
           }
         };
