@@ -1,15 +1,15 @@
 /* ==========================================
    1. 状態管理 & 初期データ (sessionStorage利用)
    ========================================== */
-const STORAGE_KEY = "local-card-freeplay-v47";
+const STORAGE_KEY = "local-card-freeplay-v50";
 const uid = function() {
   return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
 };
 
 const defaultCards = [
-  { id: uid(), name: "ブレイズドラゴン", count: 2, image: "", backImage: "", color: "linear-gradient(135deg, #f97316, #b91c1c)" },
-  { id: uid(), name: "森の守護者", count: 2, image: "", backImage: "", color: "linear-gradient(135deg, #10b981, #166534)" },
-  { id: uid(), name: "蒼月の魔導士", count: 2, image: "", backImage: "", color: "linear-gradient(135deg, #0ea5e9, #3730a3)" }
+  { id: uid(), name: "ブレイズドラゴン", count: 2, image: "", backImage: "", color: "linear-gradient(135deg, #f97316, #b91c1c)", memo: "" },
+  { id: uid(), name: "森の守護者", count: 2, image: "", backImage: "", color: "linear-gradient(135deg, #10b981, #166534)", memo: "" },
+  { id: uid(), name: "蒼月の魔導士", count: 2, image: "", backImage: "", color: "linear-gradient(135deg, #0ea5e9, #3730a3)", memo: "" }
 ];
 
 const colorPresets = [
@@ -23,7 +23,11 @@ const colorPresets = [
 let cards = defaultCards;
 try {
   const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY));
-  if (saved && Array.isArray(saved.cards)) cards = saved.cards;
+  if (saved && Array.isArray(saved.cards)) {
+    cards = saved.cards.map(function(c) {
+      return Object.assign({}, c, { memo: c.memo !== undefined ? c.memo : "" });
+    });
+  }
 } catch (e) {}
 
 let deck = [], hand = [], discard = [];
@@ -74,7 +78,6 @@ try {
   }
 } catch (e) {}
 
-// 開始設定項目の復元（手札と場の順序をそのまま保持）
 let setupItems = [];
 try {
   const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY));
@@ -106,7 +109,6 @@ try {
   }
 } catch (e) {}
 
-// 不足している項目（新規追加された場や手札）があれば追加
 if (!setupItems.some(function(i) { return i.type === 'hand'; })) {
   setupItems.unshift({ id: "hand", type: "hand", name: "手札", count: 0, facing: "up", pos: "top" });
 }
@@ -144,6 +146,11 @@ function addLog(text) {
   const timeStr = new Date().toLocaleTimeString();
   operationLogs.unshift("[" + timeStr + "] " + text);
   if (operationLogs.length > 100) operationLogs.pop();
+}
+
+function clearLogs() {
+  operationLogs = [];
+  renderLogs();
 }
 
 function renderLogs() {
@@ -514,7 +521,7 @@ function createCardContainerElement(card, compact, onClick, sourceInfo, enableCl
       bg.className = "bg-gradient";
       bg.style.background = card.color || "linear-gradient(135deg, #f1f5f9, #cbd5e1)";
       btn.appendChild(bg);
-      btn.appendChild(tokenPattern);
+      bg.appendChild(tokenPattern);
     }
   } else {
     if (card.backImage) {
@@ -584,8 +591,6 @@ function renderCounts() {
 
   $("drawButton").disabled = !deck.length;
   $("shuffleButton").disabled = !deck.length;
-  $("inspectDeckBtn").disabled = !deck.length;
-  $("inspectDiscardBtn").disabled = !discard.length;
   $("inspectHandBtn").disabled = (handIsPrivate || !hand.length);
 
   renderCounterList();
@@ -735,7 +740,7 @@ function renderPreviewPanel() {
   let isTemporarilyFacingUp = false;
 
   const ctrlBar = document.createElement("div");
-  ctrlBar.style.cssText = "display: flex; flex-direction: column; gap: 6px; width: 100%; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); font-size: 11px;";
+  ctrlBar.style.cssText = "display: flex; flex-direction: column; gap: 6px; width: 100%; background: rgba(255,255,255,0.03); padding: 5px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); font-size: 11px;";
 
   const row1 = document.createElement("div");
   row1.style.cssText = "display: flex; gap: 4px; align-items: center; justify-content: space-between;";
@@ -744,7 +749,7 @@ function renderPreviewPanel() {
   if (isSpecialInspectMode) {
     facingBtn = document.createElement("button");
     facingBtn.className = "btn secondary";
-    facingBtn.style.cssText = "padding: 2px 6px; font-size: 11px; flex: 1; justify-content: center; background: #7c3aed;";
+    facingBtn.style.cssText = "padding: 5px; font-size: 11px; flex: 1; justify-content: center; background: #7c3aed;";
     facingBtn.textContent = "確認する";
 
     const startInspect = function(e) { e.preventDefault(); isTemporarilyFacingUp = true; buildPreviewCardDOM(); };
@@ -758,7 +763,7 @@ function renderPreviewPanel() {
   } else {
     facingBtn = document.createElement("button");
     facingBtn.className = "btn secondary";
-    facingBtn.style.cssText = "padding: 2px 6px; font-size: 11px; flex: 1; justify-content: center;";
+    facingBtn.style.cssText = "padding: 5px; font-size: 11px; flex: 1; justify-content: center;";
     facingBtn.textContent = pIsFacedUp ? "裏にする" : "表にする";
     facingBtn.onclick = function() {
       pIsFacedUp = !pIsFacedUp;
@@ -784,7 +789,7 @@ function renderPreviewPanel() {
 
   const rotBtn = document.createElement("button");
   rotBtn.className = "btn secondary";
-  rotBtn.style.cssText = "padding: 2px 6px; font-size: 11px;";
+  rotBtn.style.cssText = "padding: 5px; font-size: 11px;";
   rotBtn.textContent = "+90°";
   rotBtn.onclick = function() {
     const newR = (pRotation + 90) > 360 ? 0 : pRotation + 90;
@@ -879,7 +884,7 @@ function renderPreviewPanel() {
         bg.className = "bg-gradient";
         bg.style.background = previewCard.color || "linear-gradient(135deg, #f1f5f9, #cbd5e1)";
         btn.appendChild(bg);
-        btn.appendChild(tokenPattern);
+        bg.appendChild(tokenPattern);
       }
     } else {
       if (previewCard.backImage) {
@@ -906,7 +911,7 @@ function renderPreviewPanel() {
         const tag = document.createElement("span");
         tag.className = "card-counter-tag";
         tag.style.fontSize = "13px";
-        tag.style.padding = "4px 8px";
+        tag.style.padding = "5px";
         tag.textContent = cnt.name + ":" + cnt.value;
         cb.appendChild(tag);
       });
@@ -1069,28 +1074,55 @@ function renderEditor() {
     imgContainer.appendChild(wrapFront);
     imgContainer.appendChild(wrapBack);
 
+    // カード名と枚数スピンボタンを入れる列
+    const nameCountCol = document.createElement("div");
+    nameCountCol.style.cssText = "display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; justify-content: space-between;";
+
     const nameInput = document.createElement("input");
     nameInput.type = "text";
     nameInput.value = card.name;
+    nameInput.placeholder = "カード名";
     nameInput.oninput = function(e) { card.name = e.target.value; saveCards(); renderCounts(); };
+
+    const countWrap = document.createElement("div");
+    countWrap.style.cssText = "display: flex; align-items: center; gap: 6px;";
+    const countLabel = document.createElement("span");
+    countLabel.style.cssText = "font-size: 12px; color: #94a3b8;";
+    countLabel.textContent = "枚数:";
 
     const countInput = document.createElement("input");
     countInput.type = "number";
     countInput.min = "0";
     countInput.max = "99";
     countInput.value = card.count;
+    countInput.style.cssText = "width: 70px; height: 28px; text-align: center;";
     countInput.oninput = function(e) { card.count = Math.max(0, Number(e.target.value) || 0); saveCards(); renderCounts(); };
+
+    countWrap.appendChild(countLabel);
+    countWrap.appendChild(countInput);
+    nameCountCol.appendChild(nameInput);
+    nameCountCol.appendChild(countWrap);
+
+    // メモテキストエリア (行の高さに合わせて固定・あふれ時スクロール)
+    const memoInput = document.createElement("textarea");
+    memoInput.placeholder = "メモ...";
+    memoInput.value = card.memo || "";
+    memoInput.style.cssText = "flex: 1.2; min-width: 150px; height: 64px; font-size: 12px; resize: none; overflow-y: auto;";
+    memoInput.oninput = function(e) {
+      card.memo = e.target.value;
+      saveCards();
+    };
 
     const delBtn = document.createElement("button");
     delBtn.className = "btn danger-ghost";
-    delBtn.style.cssText = "padding: 6px; width: 32px; height: 32px;";
+    delBtn.style.cssText = "padding: 5px; width: 32px; height: 32px; align-self: center;";
     delBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
     delBtn.onclick = function() { cards = cards.filter(function(item) { return item.id !== card.id; }); saveCards(); render(); };
 
     row.appendChild(handle);
     row.appendChild(imgContainer);
-    row.appendChild(nameInput);
-    row.appendChild(countInput);
+    row.appendChild(nameCountCol);
+    row.appendChild(memoInput);
     row.appendChild(delBtn);
     list.appendChild(row);
   });
@@ -1119,7 +1151,7 @@ function renderSetupModalList() {
   setupItems.forEach(function(item, idx) {
     const row = document.createElement("div");
     row.className = "editor-row";
-    row.style.cssText = "display: flex; flex-direction: row; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;";
+    row.style.cssText = "display: flex; flex-direction: row; align-items: center; gap: 8px; padding: 5px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;";
 
     const handle = document.createElement("div");
     handle.className = "drag-handle";
@@ -1165,7 +1197,7 @@ function renderSetupModalList() {
     const facingToggleBtn = document.createElement("button");
     facingToggleBtn.type = "button";
     facingToggleBtn.className = "btn secondary";
-    facingToggleBtn.style.cssText = "width: 45px; height: 28px; padding: 0; justify-content: center; font-size: 12px;";
+    facingToggleBtn.style.cssText = "width: 45px; height: 28px; padding: 5px; justify-content: center; font-size: 12px;";
     const isUp = item.facing !== "down";
     facingToggleBtn.textContent = isUp ? "表" : "裏";
     facingToggleBtn.style.background = isUp ? "rgba(255,255,255,0.1)" : "#7c3aed";
@@ -1183,7 +1215,7 @@ function renderSetupModalList() {
     const posToggleBtn = document.createElement("button");
     posToggleBtn.type = "button";
     posToggleBtn.className = "btn secondary";
-    posToggleBtn.style.cssText = "width: 45px; height: 28px; padding: 0; justify-content: center; font-size: 12px;";
+    posToggleBtn.style.cssText = "width: 45px; height: 28px; padding: 5px; justify-content: center; font-size: 12px;";
     const isTop = item.pos !== "bottom";
     posToggleBtn.textContent = isTop ? "上" : "下";
     posToggleBtn.style.background = isTop ? "rgba(255,255,255,0.1)" : "#7c3aed";
@@ -1269,7 +1301,7 @@ function renderZones() {
     fieldPrivacyToggle.type = "button";
     fieldPrivacyToggle.className = "btn secondary";
     fieldPrivacyToggle.id = "fieldPrivacyToggle_" + f.id;
-    fieldPrivacyToggle.style.cssText = "background: " + (f.isPrivate !== false ? "#7c3aed" : "rgba(255,255,255,0.1)") + "; font-size: 12px; padding: 4px 8px;";
+    fieldPrivacyToggle.style.cssText = "background: " + (f.isPrivate !== false ? "#7c3aed" : "rgba(255,255,255,0.1)") + "; font-size: 12px; padding: 5px;";
     fieldPrivacyToggle.textContent = f.isPrivate !== false ? "非公開" : "公開";
     fieldPrivacyToggle.title = "右クリック時の動作切替";
     fieldPrivacyToggle.onclick = function(e) {
@@ -1306,7 +1338,7 @@ function renderZones() {
     const facingToggle = document.createElement("button");
     facingToggle.type = "button";
     facingToggle.className = "btn secondary";
-    facingToggle.style.cssText = "width: 45px; height: 30px; padding: 0; justify-content: center; font-size: 12px;";
+    facingToggle.style.cssText = "width: 45px; height: 30px; padding: 5px; justify-content: center; font-size: 12px;";
     facingToggle.textContent = f.clickFacing === "down" ? "裏" : "表";
     facingToggle.style.background = f.clickFacing === "down" ? "#7c3aed" : "rgba(255,255,255,0.1)";
     facingToggle.onclick = function() {
@@ -1356,7 +1388,7 @@ function renderZones() {
     const pullFacingToggle = document.createElement("button");
     pullFacingToggle.type = "button";
     pullFacingToggle.className = "btn secondary";
-    pullFacingToggle.style.cssText = "width: 40px; height: 30px; padding: 0; justify-content: center; font-size: 12px;";
+    pullFacingToggle.style.cssText = "width: 40px; height: 30px; padding: 5px; justify-content: center; font-size: 12px;";
     pullFacingToggle.textContent = f.facing === "down" ? "裏" : "表";
     pullFacingToggle.style.background = f.facing === "down" ? "#7c3aed" : "rgba(255,255,255,0.1)";
     pullFacingToggle.onclick = function() {
@@ -1374,7 +1406,7 @@ function renderZones() {
 
     const spawnBtn = document.createElement("button");
     spawnBtn.className = "btn secondary";
-    spawnBtn.style.cssText = "padding: 4px 10px; height: 30px; font-size: 12px;";
+    spawnBtn.style.cssText = "padding: 5px; height: 30px; font-size: 12px;";
     spawnBtn.textContent = "出す";
     spawnBtn.onclick = function() {
       const count = Math.max(1, Number(spawnNumInput.value) || 1);
@@ -1418,7 +1450,7 @@ function renderZones() {
     if (fields.length > 1) {
       const deleteFieldBtn = document.createElement("button");
       deleteFieldBtn.className = "btn danger-ghost";
-      deleteFieldBtn.style.cssText = "padding: 0; width: 30px; height: 30px; justify-content: center; font-weight: bold; font-size: 16px;";
+      deleteFieldBtn.style.cssText = "padding: 5px; width: 30px; height: 30px; justify-content: center; font-weight: bold; font-size: 16px;";
       deleteFieldBtn.textContent = "×";
       deleteFieldBtn.onclick = function() {
         f.cards.forEach(function(c) { c.isFacedUp = true; c.parentId = null; });
@@ -1540,7 +1572,7 @@ function renderInspectList(container, cardList, srcType) {
       const publicToggleBtn = document.createElement("button");
       publicToggleBtn.type = "button";
       publicToggleBtn.className = "btn secondary";
-      publicToggleBtn.style.cssText = "padding: 2px 8px; font-size: 11px;";
+      publicToggleBtn.style.cssText = "padding: 5px; font-size: 11px;";
       
       const isIndPublic = card.isIndividuallyPublic === true;
       publicToggleBtn.textContent = isIndPublic ? "公開" : "非公開";
@@ -1557,7 +1589,7 @@ function renderInspectList(container, cardList, srcType) {
     const facingToggleBtn = document.createElement("button");
     facingToggleBtn.type = "button";
     facingToggleBtn.className = "btn secondary";
-    facingToggleBtn.style.cssText = "padding: 2px 8px; font-size: 11px;";
+    facingToggleBtn.style.cssText = "padding: 5px; font-size: 11px;";
     facingToggleBtn.textContent = isFacedUp ? "表" : "裏";
     facingToggleBtn.style.background = isFacedUp ? "rgba(255,255,255,0.1)" : "#7c3aed";
     facingToggleBtn.onclick = function() {
@@ -1596,7 +1628,7 @@ function renderInspectList(container, cardList, srcType) {
     const moveBtn = document.createElement("button");
     moveBtn.type = "button";
     moveBtn.className = "btn primary";
-    moveBtn.style.cssText = "padding: 2px 10px; font-size: 11px;";
+    moveBtn.style.cssText = "padding: 5px; font-size: 11px;";
     moveBtn.textContent = "移動";
     moveBtn.onclick = function() {
       const action = targetSelect.value;
@@ -1739,7 +1771,7 @@ function openZoomModal(card) {
 
     card.counters.forEach(function(cnt, cIdx) {
       const row = document.createElement("div");
-      row.style.cssText = "display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.04); padding: 4px 8px; border-radius: 6px; position: relative; width: 100%;";
+      row.style.cssText = "display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.04); padding: 5px; border-radius: 6px; position: relative; width: 100%;";
 
       const delB = document.createElement("button");
       delB.className = "counter-del-btn";
@@ -1931,6 +1963,20 @@ function openZoomModal(card) {
 /* ==========================================
    7. イベントリスナー登録 & 初期化
    ========================================== */
+$("deckDropZone").onclick = function() {
+  if (deck.length > 0) {
+    renderDeckInspect();
+    openModal("deckInspectModal");
+  }
+};
+
+$("discardDropZone").onclick = function() {
+  if (discard.length > 0) {
+    renderDiscardInspect();
+    openModal("discardInspectModal");
+  }
+};
+
 $("handFacingToggleBtn").onclick = function() {
   handFacing = handFacing === "up" ? "down" : "up";
   $("handFacingToggleBtn").textContent = handFacing === "up" ? "表" : "裏";
@@ -1988,7 +2034,8 @@ $("addButton").onclick = function() {
     count: 1,
     image: "",
     backImage: "",
-    color: colorPresets[cards.length % colorPresets.length]
+    color: colorPresets[cards.length % colorPresets.length],
+    memo: ""
   });
   saveCards();
   render();
@@ -2016,17 +2063,9 @@ $("openLogModalBtn").onclick = function() {
 $("logModalClose").onclick = function() { $("logModal").classList.remove("active"); };
 $("logModal").onclick = function(e) { if (e.target === $("logModal")) $("logModal").classList.remove("active"); };
 
-$("inspectDeckBtn").onclick = function() {
-  renderDeckInspect();
-  openModal("deckInspectModal");
-};
 $("deckInspectClose").onclick = function() { $("deckInspectModal").classList.remove("active"); };
 $("deckInspectModal").onclick = function(e) { if (e.target === $("deckInspectModal")) $("deckInspectModal").classList.remove("active"); };
 
-$("inspectDiscardBtn").onclick = function() {
-  renderDiscardInspect();
-  openModal("discardInspectModal");
-};
 $("discardInspectClose").onclick = function() { $("discardInspectModal").classList.remove("active"); };
 $("discardInspectModal").onclick = function(e) { if (e.target === $("discardInspectModal")) $("discardInspectModal").classList.remove("active"); };
 
@@ -2037,7 +2076,6 @@ $("inspectHandBtn").onclick = function() {
 $("handInspectClose").onclick = function() { $("handInspectModal").classList.remove("active"); };
 $("handInspectModal").onclick = function(e) { if (e.target === $("handInspectModal")) $("handInspectModal").classList.remove("active"); };
 
-$("clearLogBtn").onclick = function() { operationLogs = []; renderLogs(); };
 $("zoomCloseBtn").onclick = function() { $("zoomModal").classList.remove("active"); };
 $("zoomModal").onclick = function(e) { if (e.target === $("zoomModal")) $("zoomModal").classList.remove("active"); };
 
@@ -2062,17 +2100,17 @@ $("addFieldBtn").onclick = function() {
 };
 
 $("startButton").onclick = function() {
+  clearLogs();
   deck = shuffle(cards.flatMap(function(card) {
     return Array.from({ length: Math.max(0, Number(card.count) || 0) }, function(_, i) {
       return Object.assign({}, card, {
-        baseName: card.name, isFacedUp: true, rotation: 0, parentId: null, inspectFacing: undefined, isIndividuallyPublic: false, counters: [], memo: "", instanceId: card.id + "-" + i + "-" + uid()
+        baseName: card.name, isFacedUp: true, rotation: 0, parentId: null, inspectFacing: undefined, isIndividuallyPublic: false, counters: [], instanceId: card.id + "-" + i + "-" + uid()
       });
     });
   }));
   hand = []; discard = []; previewCard = null;
   fields.forEach(function(f) { f.cards = []; });
 
-  // 開始設定に基づく自動配置（上から順に処理）
   setupItems.forEach(function(item) {
     const count = Math.max(0, Number(item.count) || 0);
     if (count > 0 && deck.length > 0) {
@@ -2110,12 +2148,17 @@ $("drawButton").onclick = function() {
 };
 
 $("shuffleButton").onclick = function() { deck = shuffle(deck); addLog("デッキをシャッフルしました"); render(); };
-$("resetButton").onclick = function() { deck = []; hand = []; discard = []; previewCard = null; fields.forEach(function(f) { f.cards = []; }); addLog("プレイエリアをリセットしました"); render(); };
+$("resetButton").onclick = function() { 
+  clearLogs();
+  deck = []; hand = []; discard = []; previewCard = null; fields.forEach(function(f) { f.cards = []; }); 
+  addLog("プレイエリアをリセットしました"); 
+  render(); 
+};
 
 $("exportButton").onclick = function() {
   const filename = $("exportFileName").value.trim() || "card-deck.json";
   const blob = new Blob([JSON.stringify({
-    version: 22, cards: cards, handEnableClick: handEnableClick, handIsPrivate: handIsPrivate,
+    version: 25, cards: cards, handEnableClick: handEnableClick, handIsPrivate: handIsPrivate,
     counters: counters.map(function(c) { return { id: c.id, name: c.name, value: c.value }; }),
     setupItems: setupItems,
     fields: fields.map(function(f) { return { id: f.id, name: f.name, facing: f.facing, isPrivate: f.isPrivate, clickAction: f.clickAction, clickFacing: f.clickFacing, clickDeckPos: f.clickDeckPos, clickDeckNum: f.clickDeckNum, enableClick: f.enableClick }; })
@@ -2141,7 +2184,8 @@ $("importFile").onchange = function(e) {
         return {
           id: c.id || uid(), name: String(c.name || "名称未設定"), count: Math.max(0, Number(c.count) || 0),
           image: typeof c.image === "string" ? c.image : "", backImage: typeof c.backImage === "string" ? c.backImage : "",
-          color: c.color || colorPresets[i % colorPresets.length]
+          color: c.color || colorPresets[i % colorPresets.length],
+          memo: typeof c.memo === "string" ? c.memo : ""
         };
       });
       handEnableClick = data.handEnableClick !== false;
@@ -2155,7 +2199,6 @@ $("importFile").onchange = function(e) {
         };
       }) : [{ id: uid(), name: "場 1", cards: [], facing: "up", isOpen: true, isPrivate: true, clickAction: "hand", clickFacing: "up", clickDeckPos: "top", clickDeckNum: 1, enableClick: true }];
       
-      // JSON内の開始設定の順序をそのまま引き継ぐ
       setupItems = [];
       if (Array.isArray(data.setupItems) && data.setupItems.length > 0) {
         data.setupItems.forEach(function(item) {
