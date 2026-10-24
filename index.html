@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>カードゲーム・フリープレイ</title>
   <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23a78bfa" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>'>
-  <link rel="stylesheet" href=".\style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="app-layout">
@@ -49,42 +49,34 @@
 
       <div class="bottom-dock" id="bottomDock">
         <div class="stats-grid">
-          <section class="panel stat-card" id="deckDropZone">
+          <section class="panel stat-card" id="deckDropZone" style="cursor: pointer;" title="クリックしてデッキ確認">
             <div class="stat-info">
               <p class="stat-label">DECK</p>
               <p class="stat-value" id="deckCount">0</p>
             </div>
-            <div class="actions" style="gap: 4px;">
-              <button class="btn secondary" id="inspectDeckBtn" disabled style="padding: 4px 6px; font-size: 10px;">
-                確認
-              </button>
-              <button class="btn secondary" id="deckVisibilityToggleBtn" style="padding: 4px 6px; font-size: 10px; background: #7c3aed;">
+            <div class="actions" style="gap: 4px;" onclick="event.stopPropagation()">
+              <button class="btn secondary" id="deckVisibilityToggleBtn" style="padding: 5px; font-size: 10px; background: #7c3aed;">
                 非公開
               </button>
-              <button class="btn secondary" id="shuffleButton" disabled style="padding: 4px 6px; font-size: 10px;" title="シャッフル">
+              <button class="btn secondary" id="shuffleButton" disabled style="padding: 5px; font-size: 10px;" title="シャッフル">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
               </button>
             </div>
           </section>
 
-          <section class="panel stat-card" id="discardDropZone">
+          <section class="panel stat-card" id="discardDropZone" style="cursor: pointer;" title="クリックしてDISCARD確認">
             <div class="stat-info">
               <p class="stat-label">DISCARD</p>
               <p class="stat-value" id="discardCountBadge">0</p>
             </div>
-            <div class="actions">
-              <button class="btn secondary" id="inspectDiscardBtn" disabled style="padding: 4px 8px; font-size: 11px;">
-                確認
-              </button>
-            </div>
           </section>
 
-          <section class="panel stat-card" id="counterPanel" style="flex-direction: column; align-items: stretch; gap: 6px;">
+          <section class="panel stat-card" id="counterPanel" style="flex-direction: column; align-items: stretch; gap: 5px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <div class="stat-info">
                 <p class="stat-label">COUNTER</p>
               </div>
-              <button class="btn secondary" id="addCounterBtn" style="padding: 2px 8px; font-size: 12px;" title="カウンタ追加">＋</button>
+              <button class="btn secondary" id="addCounterBtn" style="padding: 5px; font-size: 12px;" title="カウンタ追加">＋</button>
             </div>
             <div class="counter-list-container" id="counterListContainer">
               <div style="color: #64748b; font-size: 11px; padding: 4px;">＋で追加</div>
@@ -97,13 +89,13 @@
             <h2>手札 <span style="font-size: 13px; font-weight: normal; color: #94a3b8; margin-left: 6px;" id="handCount">0枚</span></h2>
             
             <div class="controls-bar" id="handControlsBar" onclick="event.stopPropagation()">
-              <button type="button" class="btn secondary" id="handPrivacyToggleBtn" style="background: #7c3aed; font-size: 12px; padding: 4px 8px;" title="右クリック時の動作切替">非公開</button>
-              <button type="button" class="btn secondary" id="inspectHandBtn" style="font-size: 12px; padding: 4px 8px;" disabled>手札を公開</button>
+              <button type="button" class="btn secondary" id="handPrivacyToggleBtn" style="background: #7c3aed; font-size: 12px; padding: 5px;" title="右クリック時の動作切替">非公開</button>
+              <button type="button" class="btn secondary" id="inspectHandBtn" style="font-size: 12px; padding: 5px;" disabled>手札を公開</button>
               <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer; margin-right: 4px;">
                 <input type="checkbox" id="handEnableClick" style="width: auto;" checked> クリック時:
               </label>
               <select id="handActionSelect" style="width: auto;"></select>
-              <button type="button" class="btn secondary" id="handFacingToggleBtn" style="width: 45px; height: 30px; padding: 0; justify-content: center; font-size: 12px;">表</button>
+              <button type="button" class="btn secondary" id="handFacingToggleBtn" style="width: 45px; height: 30px; padding: 5px; justify-content: center; font-size: 12px;">表</button>
               <div id="handDeckOptions" style="display: none; align-items: center; gap: 4px;">
                 <select id="handDeckPos" style="width: 60px;">
                   <option value="top">上</option>
@@ -116,7 +108,7 @@
 
             <div class="actions" onclick="event.stopPropagation()">
               <input type="number" id="drawAmountInput" min="1" max="99" value="1" style="width: 50px; height: 32px; text-align: center;">
-              <button class="btn primary" id="drawButton" disabled style="height: 32px; padding: 0 12px;">ドロー</button>
+              <button class="btn primary" id="drawButton" disabled style="height: 32px; padding: 5px 12px;">ドロー</button>
             </div>
           </summary>
           <div class="panel-body">
@@ -131,7 +123,7 @@
       <div class="preview-resizer" id="previewResizer"></div>
       <div class="preview-header">
         <h3>PREVIEW</h3>
-        <button class="btn secondary" id="previewToggleBtn" style="padding: 4px 8px; font-size: 12px;" title="サイドパネル開閉">◀</button>
+        <button class="btn secondary" id="previewToggleBtn" style="padding: 5px; font-size: 12px;" title="サイドパネル開閉">◀</button>
       </div>
       <div class="preview-body" id="previewBody">
         <div style="color: #64748b; font-size: 12px; text-align: center; margin-top: 20px;">非公開カードのプレビュー表示エリア</div>
@@ -141,8 +133,10 @@
     <!-- 説明ポップアップ -->
     <div class="modal-overlay" id="helpModal">
       <div class="modal-content" style="width: min(500px, 90vw);">
-        <button type="button" class="btn secondary" id="helpModalClose" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; padding: 0; justify-content: center; font-weight: bold; font-size: 16px; z-index: 10;" title="閉じる">×</button>
-        <h3>アプリの説明</h3>
+        <div class="modal-header">
+          <h3>アプリの説明</h3>
+          <button type="button" class="btn secondary modal-close-btn" id="helpModalClose" title="閉じる">×</button>
+        </div>
         <div style="font-size: 13px; color: #cbd5e1; display: flex; flex-direction: column; gap: 8px; line-height: 1.5;">
           <p><strong>【概要】</strong><br>ブラウザ上で動作するフリープレイ用のカードテーブルです。</p>
         </div>
@@ -153,8 +147,10 @@
     <!-- 開始設定モーダル -->
     <div class="modal-overlay" id="setupModal">
       <div class="modal-content" style="width: min(720px, 95vw);">
-        <button type="button" class="btn secondary" id="setupModalClose" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; padding: 0; justify-content: center; font-weight: bold; font-size: 16px; z-index: 10;" title="閉じる">×</button>
-        <h3>開始設定</h3>
+        <div class="modal-header">
+          <h3>開始設定</h3>
+          <button type="button" class="btn secondary modal-close-btn" id="setupModalClose" title="閉じる">×</button>
+        </div>
         <div style="font-size: 12px; color: #94a3b8; line-height: 1.4;">上から順に処理されます。⠿をドラッグして順序を変更できます。</div>
         <div id="setupModalList" style="display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow-y: auto; padding-right: 4px;"></div>
         <button class="btn primary" id="setupModalCompleteBtn" style="width: 100%; justify-content: center;">完了</button>
@@ -163,12 +159,13 @@
 
     <!-- デッキ編集モーダル -->
     <div class="modal-overlay" id="editorModal">
-      <div class="modal-content" style="width: min(680px, 95vw); max-height: 85vh;">
-        <button type="button" class="btn secondary" id="closeEditorModalBtn" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; padding: 0; justify-content: center; font-weight: bold; font-size: 16px; z-index: 10;" title="閉じる">×</button>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-right: 36px;">
-          <h3>デッキ編集</h3>
-          <span class="badge" id="modalTotalCount">合計 0枚</span>
+      <div class="modal-content" style="width: min(740px, 95vw); max-height: 85vh;">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h3>デッキ編集</h3>
+            <span class="badge" id="modalTotalCount">合計 0枚</span>
+          </div>
+          <button type="button" class="btn secondary modal-close-btn" id="closeEditorModalBtn" title="閉じる">×</button>
         </div>
         
         <div style="display: flex; flex-direction: column; gap: 8px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);">
@@ -201,10 +198,12 @@
     <!-- DECK確認・移動モーダル -->
     <div class="modal-overlay" id="deckInspectModal">
       <div class="modal-content" style="max-height: 460px; overflow-y: auto;">
-        <button type="button" class="btn secondary" id="deckInspectClose" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; padding: 0; justify-content: center; font-weight: bold; font-size: 16px; z-index: 10;" title="閉じる">×</button>
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-right: 36px;">
-          <h3 id="deckInspectTitle">デッキ確認 (上から順)</h3>
-          <span class="badge" id="deckInspectCount">0枚</span>
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h3 id="deckInspectTitle">デッキ確認 (上から順)</h3>
+            <span class="badge" id="deckInspectCount">0枚</span>
+          </div>
+          <button type="button" class="btn secondary modal-close-btn" id="deckInspectClose" title="閉じる">×</button>
         </div>
         <div class="deck-list-modal" id="deckInspectList"></div>
       </div>
@@ -213,10 +212,12 @@
     <!-- DISCARD確認・移動モーダル -->
     <div class="modal-overlay" id="discardInspectModal">
       <div class="modal-content" style="max-height: 460px; overflow-y: auto;">
-        <button type="button" class="btn secondary" id="discardInspectClose" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; padding: 0; justify-content: center; font-weight: bold; font-size: 16px; z-index: 10;" title="閉じる">×</button>
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-right: 36px;">
-          <h3>DISCARD確認</h3>
-          <span class="badge" id="discardInspectCount">0枚</span>
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h3>DISCARD確認</h3>
+            <span class="badge" id="discardInspectCount">0枚</span>
+          </div>
+          <button type="button" class="btn secondary modal-close-btn" id="discardInspectClose" title="閉じる">×</button>
         </div>
         <div class="deck-list-modal" id="discardInspectList"></div>
       </div>
@@ -225,10 +226,12 @@
     <!-- 手札公開モーダル -->
     <div class="modal-overlay" id="handInspectModal">
       <div class="modal-content" style="width: min(85vw, 880px); max-height: 85vh;">
-        <button type="button" class="btn secondary" id="handInspectClose" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; padding: 0; justify-content: center; font-weight: bold; font-size: 16px; z-index: 10;" title="閉じる">×</button>
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-right: 36px;">
-          <h3>手札公開</h3>
-          <span class="badge" id="handInspectCount">0枚</span>
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h3>手札公開</h3>
+            <span class="badge" id="handInspectCount">0枚</span>
+          </div>
+          <button type="button" class="btn secondary modal-close-btn" id="handInspectClose" title="閉じる">×</button>
         </div>
         <div class="hand-inspect-horizontal-container" id="handInspectList"></div>
       </div>
@@ -237,10 +240,9 @@
     <!-- ログ確認モーダル -->
     <div class="modal-overlay" id="logModal">
       <div class="modal-content zoom-modal-content">
-        <button type="button" class="btn secondary" id="logModalClose" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; padding: 0; justify-content: center; font-weight: bold; font-size: 16px; z-index: 10;" title="閉じる">×</button>
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-right: 36px;">
+        <div class="modal-header">
           <h3>操作ログ</h3>
-          <button class="btn secondary" id="clearLogBtn" style="padding: 4px 10px; font-size: 12px;">ログクリア</button>
+          <button type="button" class="btn secondary modal-close-btn" id="logModalClose" title="閉じる">×</button>
         </div>
         <div class="log-list" id="logList"></div>
       </div>
@@ -248,36 +250,36 @@
 
     <!-- カード詳細モーダル -->
     <div class="modal-overlay" id="zoomModal">
-      <div class="modal-content zoom-modal-content" style="background: rgba(15, 23, 42, 0.95); padding: 12px;">
-        <button type="button" class="btn secondary" id="zoomCloseBtn" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; padding: 0; justify-content: center; font-weight: bold; font-size: 16px; z-index: 10;" title="閉じる">×</button>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 6px; gap: 8px; padding-right: 36px; flex-wrap: wrap;">
+      <div class="modal-content zoom-modal-content" style="background: rgba(15, 23, 42, 0.95); padding: 10px;">
+        <div class="modal-header" style="margin-bottom: 0;">
           <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 150px;">
             <span style="font-size: 12px; color: #94a3b8; white-space: nowrap;">名称:</span>
             <input type="text" id="zoomCardNameInput" style="height: 30px; font-size: 13px; font-weight: bold;">
           </div>
-          <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 4px;" title="親カードの選択">
-              <span style="font-size: 12px; color: #94a3b8;">親:</span>
-              <select id="zoomParentSelect" style="width: 110px; height: 30px; font-size: 12px;"></select>
-            </div>
-            <input type="number" id="zoomRotateInput" min="0" max="360" step="15" value="0" style="width: 50px; height: 30px; text-align: center; font-size: 12px;" title="回転角 (°)">
-            <span style="font-size: 12px; color: #94a3b8;">°</span>
-            <button type="button" class="btn secondary" id="zoomRotatePlus90" style="padding: 4px 8px; font-size: 12px;">+90°</button>
-            <button type="button" class="btn secondary" id="zoomRotateZero" style="padding: 4px 8px; font-size: 12px;">0°</button>
-            <button type="button" class="btn secondary" id="zoomFacingToggleBtn" style="padding: 4px 10px; font-size: 12px;">表/裏切替</button>
+          <button type="button" class="btn secondary modal-close-btn" id="zoomCloseBtn" title="閉じる">×</button>
+        </div>
+
+        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 6px;">
+          <div style="display: flex; align-items: center; gap: 4px;" title="親カードの選択">
+            <span style="font-size: 12px; color: #94a3b8;">親:</span>
+            <select id="zoomParentSelect" style="width: 110px; height: 30px; font-size: 12px;"></select>
           </div>
+          <input type="number" id="zoomRotateInput" min="0" max="360" step="15" value="0" style="width: 50px; height: 30px; text-align: center; font-size: 12px;" title="回転角 (°)">
+          <span style="font-size: 12px; color: #94a3b8;">°</span>
+          <button type="button" class="btn secondary" id="zoomRotatePlus90" style="padding: 5px; font-size: 12px;">+90°</button>
+          <button type="button" class="btn secondary" id="zoomRotateZero" style="padding: 5px; font-size: 12px;">0°</button>
+          <button type="button" class="btn secondary" id="zoomFacingToggleBtn" style="padding: 5px; font-size: 12px;">表/裏切替</button>
         </div>
 
         <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start;">
           <!-- 左側：カードプレビュー & 親子系譜 -->
           <div style="flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 8px;">
-            <div id="zoomChainContainer" style="width: 100%; display: flex; flex-direction: column; gap: 4px; padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); font-size: 12px;">
+            <div id="zoomChainContainer" style="width: 100%; display: flex; flex-direction: column; gap: 4px; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); font-size: 12px;">
               <div style="color: #94a3b8; font-weight: bold; margin-bottom: 2px;">親子系譜 (クリックで詳細切替):</div>
               <div id="zoomChainList" style="display: flex; flex-direction: column; gap: 3px;"></div>
             </div>
 
-            <div id="zoomCardContainer" style="display: flex; align-items: center; justify-content: center; margin: 4px 0; padding: 24px; overflow: visible; min-height: 220px; transition: transform 0.1s;"></div>
+            <div id="zoomCardContainer" style="display: flex; align-items: center; justify-content: center; margin: 4px 0; padding: 10px; overflow: visible; min-height: 220px; transition: transform 0.1s;"></div>
           </div>
 
           <!-- 右側：COUNTER機能 & メモ機能 -->
@@ -285,7 +287,7 @@
             <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 14px; font-weight: 800; color: #c4b5fd; letter-spacing: 0.05em;">COUNTER</span>
-                <button type="button" class="btn secondary" id="zoomAddCounterBtn" style="padding: 2px 8px; font-size: 11px;">＋追加</button>
+                <button type="button" class="btn secondary" id="zoomAddCounterBtn" style="padding: 5px; font-size: 11px;">＋追加</button>
               </div>
               <div id="zoomCounterList" style="display: flex; flex-direction: column; gap: 6px; max-height: 160px; overflow-y: auto; overflow-x: hidden; padding-top: 8px; padding-right: 2px;"></div>
             </div>
@@ -300,6 +302,6 @@
     </div>
   </div>
 
-  <script src=".\app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
